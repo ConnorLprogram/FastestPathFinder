@@ -1,126 +1,114 @@
 <!DOCTYPE html>
 <html>
+
 <body>
-    <h1>My First Google Map</h1>
+    <h1>Google Map</h1>
+    Start: <input type="text" id="start" name="start"><br>
+    Destination: <input type="text" id="end" name="end"><br>
+    <button onclick="displayRoute()"> Submit</button>
+    <br />
     <div id="googleMap" style="width:100%;height:400px;"></div>
-    
-    <form action="/action_page.php">
-        <label for="fLocation">First Location:</label>
-        <input type="text" id="fLocation" name="fLocation" value="First Location"><br><br>
-        <label for="eLocation">End Location:</label>
-        <input type="text" id="eLocation" name="eLocation" value="End Location"><br><br>
-        <input type="submit" value="Submit">
-    </form>
-    
-
     <script>
-        /*
-        function AssignVariables() {
-            var firstLocation = document.getElementById("fLocation");
-            var endLocation = document.getElementById("eLocation");
+        var map;
+        var path;
+        var markers = [];
+        var townList = [
+            { lat: 47.27, lng: -122.58 },
+            { lat: 47.2, lng: -119.32 },
+            { lat: 48.5, lng: -122.33 },
+            { lat: 48.42, lng: -119.53 },
+            { lat: 47.4, lng: -120.2 },
+            { lat: 47.67, lng: -122.11 },
+            { lat: 46.75, lng: -117.12 },
+            { lat: 48.25, lng: -122.68 },
+            { lat: 47.15, lng: -122.48 },
+            { lat: 48.35, lng: -122.65 },
+            { lat: 48.12, lng: -123.5 },
+            { lat: 46.97, lng: -123.97 },
+            { lat: 46.57, lng: -120.53 },
+            { lat: 47.48, lng: -122.77 },
+            { lat: 47.25, lng: -123.15 },
+            { lat: 47.95, lng: -124.55 },
+            { lat: 47.63, lng: -117.53 },
+            { lat: 46.1, lng: -118.28 },
+            { lat: 46.97, lng: -122.9 },
+            { lat: 47.62, lng: -117.65 },
+            { lat: 47.32, lng: -119.52 },
+            { lat: 48.8, lng: -122.53 },
+            { lat: 46.48, lng: -122.8 },
+            { lat: 47.28, lng: -121.33 },
+            { lat: 48.8, lng: -122.53 },
+            { lat: 47.92, lng: -122.28 },
+            { lat: 47.45, lng: -122.3 },
+            { lat: 46.27, lng: -119.12 },
+            { lat: 46.57, lng: -119.6 },
+            { lat: 47.5, lng: -122.22 },
+            { lat: 47.08, lng: -122.58 }
+        ];
 
-        }
-
-        */
-        function myMap() {
-
-
-
+        function initMap() {
             var mapProp = {
-                center: new google.maps.LatLng(47.5, -121.5),
+                center: new google.maps.LatLng(47.608060, -122.329731),
                 zoom: 7
             };
+            map = new google.maps.Map(document.getElementById("googleMap"), mapProp);
+            createAndSetMarkers()
+        }
 
-            var map = new google.maps.Map(document.getElementById("googleMap"), mapProp);
-            var seattlePosition = { lat: 47.608060, lng: -122.329731 };
-
-            var townList = [
-                { lat: 47.27, lng: -122.58 },
-                { lat: 47.2, lng: -119.32 },
-                { lat: 48.5, lng: -122.33 },
-                { lat: 48.42, lng: -119.53 },
-                { lat: 47.4, lng: -120.2 },
-                { lat: 47.67, lng: -122.11 },
-                { lat: 46.75, lng: -117.12 },
-                { lat: 48.25, lng: -122.68 },
-                { lat: 47.15, lng: -122.48 },
-                { lat: 48.35, lng: -122.65 },
-                { lat: 48.12, lng: -123.5 },
-                { lat: 46.97, lng: -123.97 },
-                { lat: 46.57, lng: -120.53 },
-                { lat: 47.48, lng: -122.77 },
-                { lat: 47.25, lng: -123.15 },
-                { lat: 47.95, lng: -124.55 },
-                { lat: 47.63, lng: -117.53 },
-                { lat: 46.1, lng: -118.28 },
-                { lat: 46.97, lng: -122.9 },
-                { lat: 47.62, lng: -117.65 },
-                { lat: 47.32, lng: -119.52 },
-                { lat: 48.8, lng: -122.53 },
-                { lat: 46.48, lng: -122.8 },
-                { lat: 47.28, lng: -121.33 },
-                { lat: 48.8, lng: -122.53 },
-                { lat: 47.92, lng: -122.28 },
-                { lat: 47.45, lng: -122.3 },
-                { lat: 46.27, lng: -119.12 },
-                { lat: 46.57, lng: -119.6 },
-                { lat: 47.5, lng: -122.22 },
-                { lat: 47.08, lng: -122.58 }
-            ];
-
-            for (town = 0; town < townList.length; town++) {
+        function createAndSetMarkers() {
+            for (var i = 0; i < townList.length; i++) {
                 var marker = new google.maps.Marker({
-                    position: townList[town],
+                    position: townList[i],
                     map: map
                 });
+                markers.push(marker)
+                markers[i].setMap(map);
             }
+        }
 
-            var marker = new google.maps.Marker({
-                position: seattlePosition,
-                map: map,
-                title: 'Seattle'
-            });
-            var pathPlanCoordinates = [
-                /*
-                { lat: 48.5, lng: -122.33 },
-                { lat: 46.57, lng: -119.6 }
-                */
-            ];
+        function setZoom(map, pathMarker) {
+            var boundBox = new google.maps.LatLngBounds();
+            for (var i = 0; i < pathMarker.length; i++) {
+                boundBox.extend(pathMarker[i])
+            }
+            map.setCenter(boundBox.getCenter());
+            map.fitBounds(boundBox);
+        }
 
-            fetch('https://localhost:44303/api/Location/' + 'Burlington' + '&' + 'Walla Walla')
+        function displayRoute() {
+            if (path) {
+                path.setMap(null)
+            }
+            var startTown = document.getElementById('start').value
+            var endTown = document.getElementById('end').value
+            var pathPlanCoordinates = [];
+            fetch(`https://localhost:44303/api/Location/${startTown}&${endTown}`)
                 .then((response) => {
                     return response.json();
                 })
                 .then((data) => {
-                    console.log(data);
-
                     data.forEach(coord => {
                         pathPlanCoordinates.push({
                             lat: coord.latitude,
                             lng: coord.longitude
                         })
-                        console.log({ pathPlanCoordinates });
-
                     })
                 })
                 .then(() => {
-                    var path = new google.maps.Polyline({
+                    path = new google.maps.Polyline({
                         path: pathPlanCoordinates,
                         geodesic: true,
                         strokeColor: '#FF0000',
                         strokeOpacity: 1.0,
                         strokeWeight: 2
                     });
-
+                    setZoom(map, pathPlanCoordinates);
                     path.setMap(map);
                 });
-            console.log({ pathPlanCoordinates });
-
-
-
-
         }
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBIgbw-CyUwuI0nt4lUiMLMtFu-ShEf_S0&callback=myMap"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBIgbw-CyUwuI0nt4lUiMLMtFu-ShEf_S0&callback=initMap"
+            async defer></script>
 </body>
+
 </html>
