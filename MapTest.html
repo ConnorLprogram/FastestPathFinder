@@ -3,7 +3,25 @@
 <body>
     <h1>My First Google Map</h1>
     <div id="googleMap" style="width:100%;height:400px;"></div>
+    
+    <form action="/action_page.php">
+        <label for="fLocation">First Location:</label>
+        <input type="text" id="fLocation" name="fLocation" value="First Location"><br><br>
+        <label for="eLocation">End Location:</label>
+        <input type="text" id="eLocation" name="eLocation" value="End Location"><br><br>
+        <input type="submit" value="Submit">
+    </form>
+    
+
     <script>
+        /*
+        function AssignVariables() {
+            var firstLocation = document.getElementById("fLocation");
+            var endLocation = document.getElementById("eLocation");
+
+        }
+
+        */
         function myMap() {
 
 
@@ -45,7 +63,7 @@
                 { lat: 47.92, lng: -122.28 },
                 { lat: 47.45, lng: -122.3 },
                 { lat: 46.27, lng: -119.12 },
-                //{ lat: 119.6, lng: -119.6 },
+                { lat: 46.57, lng: -119.6 },
                 { lat: 47.5, lng: -122.22 },
                 { lat: 47.08, lng: -122.58 }
             ];
@@ -64,13 +82,12 @@
             });
             var pathPlanCoordinates = [
                 /*
-                { lat: 46.57, lng: -120.53 },
-                { lat: 47.15, lng: -122.48 },
-                { lat: 47.48, lng: -122.77 }
+                { lat: 48.5, lng: -122.33 },
+                { lat: 46.57, lng: -119.6 }
                 */
             ];
 
-            fetch('https://localhost:44303/api/Location/Spokane&Seattle')
+            fetch('https://localhost:44303/api/Location/' + 'Burlington' + '&' + 'Walla Walla')
                 .then((response) => {
                     return response.json();
                 })

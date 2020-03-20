@@ -54,17 +54,16 @@ namespace PathFinder.Services
 
             return foundLocation;
         }
-        public async ValueTask<Pathlist> FindPath(Location startLocation, Location endlocation)
+        public async ValueTask<Pathlist> FindPath(List<Pathlist> pathList, List<Location> allLocations, Location startLocation, Location endlocation)
         {
-            List<Location> allLocations = this.locationStorageBroker.SelectAllLocationsAsync().ToList();
             FilterLocations(allLocations, startLocation, endlocation);
-            FindPossibleLocations(allLocations, startLocation);
+            FindPossibleLocations(pathList, allLocations, startLocation);
             FindCloseLocations(allLocations);
             Pathlist nextLocation = FindClosest(allLocations, endlocation.latitude, endlocation.longitude);
 
             return nextLocation;
         }
-        public List<Location> FindPossibleLocations(List<Location> allLocations, Location startLocation)
+        public List<Location> FindPossibleLocations(List<Pathlist> pathList, List<Location> allLocations, Location startLocation)
         {
             double startLatitude = startLocation.latitude;
             double startLongitude = startLocation.longitude;
@@ -80,6 +79,14 @@ namespace PathFinder.Services
                 {
                     location.possibleLocation = false;
                     location.distanceFromLocation = -1;
+                }
+                foreach(Pathlist pathLocation in pathList)
+                {
+                    if(location.longitude == pathLocation.longitude && location.latitude == pathLocation.latitude)
+                    {
+                        location.possibleLocation = false;
+                        location.distanceFromLocation = -1;
+                    }
                 }
             }
             return allLocations;
@@ -116,6 +123,10 @@ namespace PathFinder.Services
 
         public Pathlist FindClosest(List<Location> allLocations, double endLatitude, double endLongitude)
         {
+            foreach(Location location in allLocations)
+            {
+                location.distanceFromLocation = -1;
+            }
             foreach (Location location in allLocations)
             {
                 if (location.closePlace == true)
@@ -140,6 +151,7 @@ namespace PathFinder.Services
 
             return pathLocation;
         }
+        
 
 
         public List<Location> FilterLocations(List<Location> allLocations, Location startLocation, Location endLocation)
@@ -148,10 +160,10 @@ namespace PathFinder.Services
             {
                 location.possibleLocation = false;
             }
-            double minLatitude = Math.Min(startLocation.latitude, endLocation.latitude);
-            double minLongitude = Math.Min(startLocation.longitude, endLocation.longitude);
-            double maxLatitude = Math.Max(startLocation.latitude, endLocation.latitude);
-            double maxLongitude = Math.Max(startLocation.longitude, endLocation.longitude);
+            double minLatitude = Math.Min(startLocation.latitude, endLocation.latitude)-.5;
+            double minLongitude = Math.Min(startLocation.longitude, endLocation.longitude)-.5;
+            double maxLatitude = Math.Max(startLocation.latitude, endLocation.latitude)+.5;
+            double maxLongitude = Math.Max(startLocation.longitude, endLocation.longitude+.5);
 
             foreach (Location location in allLocations)
             {
@@ -167,6 +179,7 @@ namespace PathFinder.Services
 
         public Pathlist ChangeLocationToPathList(Location location)
         {
+
             Pathlist pathLocation = new Pathlist();
             pathLocation.Id = Guid.NewGuid();
             pathLocation.latitude = location.latitude;
@@ -186,21 +199,17 @@ namespace PathFinder.Services
                 return pathlists;
             }
             List<Location> allLocation = this.locationStorageBroker.SelectAllLocationsAsync().ToList();
+            Pathlist checkedLocation = await FindPath(pathlists, allLocation, startLocation, endLocation);
+            pathlists.Add(checkedLocation);
             foreach (Location location in allLocation)
             {
                 location.closePlace = false;
                 location.possibleLocation = false;
             }
-            Pathlist checkedLocation = await FindPath(startLocation, endLocation);
-            pathlists.Add(checkedLocation);
+            
             Location nextLocation = new Location();
             while (checkedLocation.latitude != endLocation.latitude || checkedLocation.longitude != endLocation.longitude)
             {
-                foreach (Location location in allLocation)
-                {
-                    location.closePlace = false;
-                    location.possibleLocation = false;
-                }
                 double nextLongitude = checkedLocation.longitude;
                 double nextLatitude = checkedLocation.latitude;
                 foreach (Location location in allLocation)
@@ -210,10 +219,15 @@ namespace PathFinder.Services
                         nextLocation = location;
                     }
                 }
-                checkedLocation = await FindPath(nextLocation, endLocation);
+                checkedLocation = await FindPath(pathlists, allLocation, nextLocation, endLocation);
                 pathlists.Add(checkedLocation);
+                foreach (Location location in allLocation)
+                {
+                    location.closePlace = false;
+                    location.possibleLocation = false;
+                }
             }
-
+            
             return pathlists;
         }
         /*
