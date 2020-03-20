@@ -94,14 +94,14 @@ namespace PathFinder.Services
 
         public List<Location> FindCloseLocations(List<Location> allLocations)
         {
-            for (int counter = 0; counter < 3; counter++)
+            for (int counter = 0; counter < 5; counter++)
             {
                 double closestValue = 10000000;
                 foreach (Location location in allLocations)
                 {
                     if (location.closePlace == false && location.possibleLocation == true
                         && location.distanceFromLocation < closestValue
-                        && location.distanceFromLocation != 0)
+                        && location.distanceFromLocation > 0)
                     {
                         closestValue = location.distanceFromLocation;
                     }
@@ -138,7 +138,7 @@ namespace PathFinder.Services
             double closestValue = 10000000;
             foreach (Location location in allLocations)
             {
-                if (location.closePlace == true && location.distanceFromLocation < closestValue)
+                if (location.closePlace == true && location.distanceFromLocation < closestValue && location.distanceFromLocation != -1)
                 {
                     closestValue = location.distanceFromLocation;
                 }
@@ -163,7 +163,7 @@ namespace PathFinder.Services
             double minLatitude = Math.Min(startLocation.latitude, endLocation.latitude)-.5;
             double minLongitude = Math.Min(startLocation.longitude, endLocation.longitude)-.5;
             double maxLatitude = Math.Max(startLocation.latitude, endLocation.latitude)+.5;
-            double maxLongitude = Math.Max(startLocation.longitude, endLocation.longitude+.5);
+            double maxLongitude = Math.Max(startLocation.longitude, endLocation.longitude)+.5;
 
             foreach (Location location in allLocations)
             {
