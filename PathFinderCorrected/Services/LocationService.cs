@@ -192,6 +192,7 @@ namespace PathFinder.Services
         public async ValueTask<List<Pathlist>> CompileList(Location startLocation, Location endLocation)
         {
             List<Pathlist> pathlists = new List<Pathlist>();
+            
 
             pathlists.Add(ChangeLocationToPathList(startLocation));
             if (startLocation == endLocation)
@@ -230,13 +231,14 @@ namespace PathFinder.Services
             
             return pathlists;
         }
-        /*
-        public void PrintLocationsToConsole()
+        
+        /*public object PrintLocationsToConsole()
         {
             List<Location> allLocations = this.locationStorageBroker.SelectAllLocationsAsync().ToList();
 
             File.WriteAllLines("locations.txt", allLocations
                 .Select(location => $"{{lat: {location.latitude}, lng: {location.longitude} }}").ToArray());
+            return null;
         }*/
     }
 }

@@ -17,5 +17,7 @@ namespace PathFinder.Services
         List<Location> FindCloseLocations(List<Location> allLocations);
         Pathlist FindClosest(List<Location> allLocations, double endLatitude, double endLongitude);
         ValueTask<List<Pathlist>> CompileList(Location startLocation, Location endLocation);
+
+        //object PrintLocationsToConsole();
     }
 }
