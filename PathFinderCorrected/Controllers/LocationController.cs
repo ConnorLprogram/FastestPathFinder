@@ -51,5 +51,11 @@ namespace PathFinder.Controllers
 
             return compiledList;
         }
+        /*
+        [HttpGet("converToTxt")]
+        public void convertTxt()
+        {
+            locationService.PrintLocationsToConsole();
+        } */
     }
 }
