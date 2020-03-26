@@ -87,9 +87,6 @@ namespace PathFinder.Services
         
         public List<Location> FindPossibleLocations(List<Pathlist> pathList, List<Location> allLocations, Location startLocation)
         {
-            double startLatitude = startLocation.latitude;
-            double startLongitude = startLocation.longitude;
-
             foreach (Location location in allLocations)
             {
                 if (location.possibleLocation == true)
@@ -171,7 +168,103 @@ namespace PathFinder.Services
 
             return pathLocation;
         }
-        
+
+        public async ValueTask<List<Pathlist>> CompileAlternateList(Location startLocation, Location endLocation, int alternateNum)
+        {
+            List<Pathlist> pathlists = new List<Pathlist>();
+
+
+            pathlists.Add(ChangeLocationToPathList(startLocation));
+            if (startLocation == endLocation)
+            {
+                return pathlists;
+            }
+            List<Location> allLocation = this.locationStorageBroker.SelectAllLocationsAsync().ToList();
+            Pathlist checkedLocation = FindAlternatePath(pathlists, allLocation, startLocation, endLocation, alternateNum);
+            pathlists.Add(checkedLocation);
+            resetLocations(allLocation);
+
+            Location nextLocation = new Location();
+            while (checkedLocation.latitude != endLocation.latitude || checkedLocation.longitude != endLocation.longitude)
+            {
+                double nextLongitude = checkedLocation.longitude;
+                double nextLatitude = checkedLocation.latitude;
+                foreach (Location location in allLocation)
+                {
+                    if (location.longitude == nextLongitude && location.latitude == nextLatitude)
+                    {
+                        nextLocation = location;
+                    }
+                }
+                checkedLocation = FindAlternatePath(pathlists, allLocation, nextLocation, endLocation, alternateNum);
+                pathlists.Add(checkedLocation);
+                resetLocations(allLocation);
+            }
+
+            return pathlists;
+        }
+        public Pathlist FindAlternatePath(List<Pathlist> pathList, List<Location> allLocations, Location startLocation, Location endlocation, int alternateNum)
+        {
+            FilterLocations(allLocations, startLocation, endlocation);
+            FindPossibleLocations(pathList, allLocations, startLocation);
+            FindCloseLocations(allLocations);
+            Pathlist nextLocation = FindAlternate(allLocations, endlocation, alternateNum);
+
+            return nextLocation;
+        }
+        public Pathlist FindAlternate(List<Location> allLocations, Location endLocation, int alternateNum)
+        {
+            foreach (Location location in allLocations)
+            {
+                location.distanceFromLocation = -1;
+            }
+            foreach (Location location in allLocations)
+            {
+                if (location.closePlace == true)
+                {
+                    location.distanceFromLocation = calculateDistance(location, endLocation);
+                }
+            }
+            double closestValue = double.MaxValue;
+            for (int townNum = 0; townNum < alternateNum; townNum++)
+            {
+                closestValue = double.MaxValue;
+                foreach (Location location in allLocations)
+                {
+                    if (location.possibleLocation = true && location.closePlace == true &&
+                        location.distanceFromLocation < closestValue && location.distanceFromLocation != -1)
+                    {
+                        closestValue = location.distanceFromLocation;
+                    }
+                }
+                Location notAlternateLocation = allLocations
+                .Where(location => location.distanceFromLocation == closestValue)
+                .FirstOrDefault();
+                if (notAlternateLocation == endLocation && townNum == 0)
+                {
+                    Pathlist endingLocation = ChangeLocationToPathList(endLocation);
+                    return endingLocation;
+                }
+                notAlternateLocation.closePlace = false;
+            }
+            closestValue = double.MaxValue;
+            foreach (Location location in allLocations)
+            {
+                if (location.possibleLocation = true && location.closePlace == true &&
+                    location.distanceFromLocation < closestValue && location.distanceFromLocation != -1)
+                {
+                    closestValue = location.distanceFromLocation;
+                }
+            }
+            Location closeLocation = allLocations
+                .Where(location => location.distanceFromLocation == closestValue)
+                .FirstOrDefault();
+            Pathlist pathLocation = new Pathlist();
+            pathLocation = ChangeLocationToPathList(closeLocation);
+
+            return pathLocation;
+        }
+
         public Pathlist ChangeLocationToPathList(Location location)
         {
 

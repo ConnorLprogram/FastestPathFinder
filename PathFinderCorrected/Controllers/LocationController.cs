@@ -51,6 +51,16 @@ namespace PathFinder.Controllers
 
             return compiledList;
         }
+
+        [HttpGet("{startName}&{endName}&{alternateNum}")]
+        public async ValueTask<List<Pathlist>> FindTheAlternatePath(string startName, string endName, int alternateNum)
+        {
+            Location startLocation = this.locationService.FindLocation(startName);
+            Location endLocation = this.locationService.FindLocation(endName);
+            List<Pathlist> compiledList = await this.locationService.CompileAlternateList(startLocation, endLocation, alternateNum);
+
+            return compiledList;
+        }
         /*
         [HttpGet("converToTxt")]
         public void convertTxt()
