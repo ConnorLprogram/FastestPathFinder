@@ -42,22 +42,12 @@ namespace PathFinder.Controllers
             return this.locationService.SearchLocation(locationName);
         }
 
-        [HttpGet("{startName}&{endName}")]
-        public async ValueTask<List<Pathlist>> FindThePath(string startName, string endName)
-        {
-            Location startLocation = this.locationService.FindLocation(startName);
-            Location endLocation = this.locationService.FindLocation(endName);
-            List<Pathlist> compiledList = await this.locationService.CompileList(startLocation, endLocation);
-
-            return compiledList;
-        }
-
         [HttpGet("{startName}&{endName}&{alternateNum}")]
-        public async ValueTask<List<Pathlist>> FindTheAlternatePath(string startName, string endName, int alternateNum)
+        public async ValueTask<List<Pathlist>> FindThePath(string startName, string endName, int alternateNum)
         {
             Location startLocation = this.locationService.FindLocation(startName);
             Location endLocation = this.locationService.FindLocation(endName);
-            List<Pathlist> compiledList = await this.locationService.CompileAlternateList(startLocation, endLocation, alternateNum);
+            List<Pathlist> compiledList = await this.locationService.CompileList(startLocation, endLocation, alternateNum);
 
             return compiledList;
         }
