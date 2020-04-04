@@ -25,6 +25,8 @@ namespace PathFinder.Services
             {
                 return pathlists;
             }
+            resetDistance();
+            SetDistance(calculateDistance(startLocation, endLocation));
             List<Location> allLocation = this.locationStorageBroker.SelectAllLocationsAsync().ToList();
             Pathlist checkedLocation = FindPath(pathlists, allLocation, startLocation, endLocation, alternateNum);
             pathlists.Add(checkedLocation);
@@ -54,7 +56,7 @@ namespace PathFinder.Services
         {
             FilterLocations(allLocations, startLocation, endlocation);
             FindPossibleLocations(pathList, allLocations, startLocation);
-            FindCloseLocations(allLocations);
+            FindCloseLocations(allLocations, startLocation);
             Pathlist nextLocation = FindNextLocation(allLocations, endlocation, alternateNum);
 
             return nextLocation;
@@ -62,10 +64,6 @@ namespace PathFinder.Services
 
         public List<Location> FilterLocations(List<Location> allLocations, Location startLocation, Location endLocation)
         {
-            foreach (Location location in allLocations)
-            {
-                location.possibleLocation = false;
-            }
             double minLatitude = Math.Min(startLocation.latitude, endLocation.latitude) - .5;
             double minLongitude = Math.Min(startLocation.longitude, endLocation.longitude) - .5;
             double maxLatitude = Math.Max(startLocation.latitude, endLocation.latitude) + .5;
@@ -103,23 +101,22 @@ namespace PathFinder.Services
             return allLocations;
         }
 
-        public List<Location> FindCloseLocations(List<Location> allLocations)
+        public List<Location> FindCloseLocations(List<Location> allLocations, Location CurrentLocation)
         {
-            for (int counter = 0; counter < 5; counter++)
+            for (int counter = 0; counter < 3; counter++)
             {
                 double closestValue = double.MaxValue;
                 foreach (Location location in allLocations)
                 {
                     if (location.closePlace == false && location.possibleLocation == true
                         && location.distanceFromLocation < closestValue
-                        && location.distanceFromLocation > 0)
+                        && location != CurrentLocation)
                     {
                         closestValue = location.distanceFromLocation;
                     }
                 }
-
-                Location closeLocation = FindLocationByDistance(closestValue, allLocations);
-                closeLocation.closePlace = true;
+             Location closeLocation = FindLocationByDistance(closestValue, allLocations);
+             closeLocation.closePlace = true;
             }
 
             return allLocations;
@@ -158,8 +155,9 @@ namespace PathFinder.Services
             closestValue = double.MaxValue;
             foreach (Location location in allLocations)
             {
-                if (location.possibleLocation = true && location.closePlace == true &&
-                    location.distanceFromLocation < closestValue && location.distanceFromLocation != -1)
+                if (location.closePlace == true &&
+                    location.distanceFromLocation < closestValue 
+                    && location.distanceFromLocation != -1)
                 {
                     closestValue = location.distanceFromLocation;
                 }
@@ -167,7 +165,7 @@ namespace PathFinder.Services
             Location closeLocation = FindLocationByDistance(closestValue, allLocations);
             Pathlist pathLocation = new Pathlist();
             pathLocation = AddLocationToPathlist(closeLocation);
-
+            SetDistance(closestValue);
             return pathLocation;
         }
 
@@ -189,6 +187,7 @@ namespace PathFinder.Services
             {
                 location.closePlace = false;
                 location.possibleLocation = false;
+                location.distanceFromLocation = -1;
             }
             return allLocations;
         }

@@ -1,0 +1,17 @@
+﻿@using System.Net.Http
+@page "/fetchdata"
+@inject HttpClient Http
+@using MapExample.Data
+@inject WeatherForecastService ForecastService
+
+@code {
+    private Town[] allTowns;
+    private const string ServiceEndpoint = "https://localhost:44303/api/Location/Redmond&Tacoma&0";
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        allTowns = await Http.GetJsonAsync<Town[]>(ServiceEndpoint);
+    }
+}

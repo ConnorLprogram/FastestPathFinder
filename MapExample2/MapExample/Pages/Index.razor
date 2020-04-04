@@ -1,0 +1,109 @@
+﻿@page "/"
+@using Syncfusion.Blazor.Maps
+@using System.Net.Http
+@using RESTFulSense.Clients
+@using MapExample.Data
+@using Syncfusion.Blazor.Inputs
+
+<button @onclick="@GetPathAsync">Get Path</button>
+
+<p>TextBox value is: @StartLocation</p>
+<SfTextBox @bind-Value="@StartLocation"></SfTextBox>
+<p>TextBox value is: @EndLocation</p>
+<SfTextBox @bind-Value="@EndLocation"></SfTextBox>
+<SfMaps>
+    <MapsZoomSettings ZoomFactor="7">
+    </MapsZoomSettings>
+    <MapsCenterPosition Latitude="47.608060" Longitude="-122.329731"></MapsCenterPosition>
+    <MapsLayers>
+        <MapsLayer LayerType="ShapeLayerType.OSM" UrlTemplate="http://mt1.google.com/vt/lyrs=m@129&hl=en&x=tileX&y=tileY&z=level">
+            <MapsNavigationLines>
+                @* Add navigation line*@
+
+                @foreach (var navigationLine in CurrentPathLine)
+                {
+                    double[] latitudes = navigationLine.latitude;
+                    double[] longitudes = navigationLine.longitude;
+                    for (int locationNum = 0; locationNum < navigationLine.latitude.Length-1; locationNum++)
+                    {
+                        <MapsNavigationLine Visible="true"
+                                            Angle="0.01"
+                                            DashArray="1"
+                                            Color="black"
+                                            Latitude=" new double[] { latitudes[locationNum], latitudes[locationNum + 1] }"
+                                            Longitude="new double[] { longitudes[locationNum], longitudes[locationNum + 1] }">
+                        </MapsNavigationLine>
+                    }
+
+                }
+            </MapsNavigationLines>
+            @* Add markers *@
+            <MapsMarkerSettings>
+                <MapsMarker Visible='true' DataSource='@Cities' Height='20' Width='20'
+                            AnimationDuration='0' Shape='Syncfusion.Blazor.Maps.MarkerType.Image'
+                            ImageUrl='styles/images/maps/ballon.png'>
+                    <MapsMarkerTooltipSettings Visible="true" ValuePath="name"></MapsMarkerTooltipSettings>
+                </MapsMarker>
+            </MapsMarkerSettings>
+
+        </MapsLayer>
+    </MapsLayers>
+    <MapsZoomSettings ZoomFactor="7" Enable="true"></MapsZoomSettings>
+</SfMaps>
+
+@code{
+
+    public List<Town> CurrentPath { get; set; }
+    public async void GetPathAsync()
+    {
+        var apiClient = new RESTFulApiClient();
+        this.CurrentPath = await apiClient.GetContentAsync<List<Town>>(relativeUrl: $"https://localhost:44303/api/Location/{StartLocation}&{EndLocation}&0");
+
+        foreach (Town location in CurrentPath)
+        {
+            allLatitudes.Add(location.latitude);
+        }
+        foreach (Town location in CurrentPath)
+        {
+            allLongitudes.Add(location.longitude);
+        }
+        Pathline currentCoordinates = new Pathline();
+        currentCoordinates.latitude = allLatitudes.ToArray();
+        currentCoordinates.longitude = allLongitudes.ToArray();
+        CurrentPathLine.Add(currentCoordinates);
+    }
+
+
+    public string StartLocation { get; set; } = "Start Location";
+    public string EndLocation { get; set; } = "End Location";
+
+    public class Pathline
+    {
+        public double[] latitude { get; set; }
+        public double[] longitude { get; set; }
+    }
+    public List<double> allLatitudes = new List<double>();
+    public List<double> allLongitudes = new List<double>();
+    public List<Pathline> CurrentPathLine = new List<Pathline>();
+
+    public class City
+    {
+        public Boolean ZoomIntiatally = true;
+        public double latitude;
+        public double longitude;
+        public string Name;
+    }
+    private List<City> Cities = new List<City> {
+    new City { latitude =47.820531, longitude = -122.31909,  Name="Lynnwood" },
+    new City{ latitude = 47.037924, longitude = -122.899877,  Name="Olympia"}
+    };
+
+}
+<style>
+    .markerTemplate {
+        font-size: 12px;
+        color: white;
+        text-shadow: 0px 1px 1px black;
+        font-weight: 500
+    }
+</style>
